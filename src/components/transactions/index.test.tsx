@@ -13,6 +13,8 @@ describe("transaction history", () => {
     });
 
     expect(expensesTabTrigger).toHaveAttribute("data-state", "active");
+    
+    expect(await screen.findByText("Loading...")).toBeInTheDocument();
 
     const expensesTable = await screen.findByRole("table", {
       name: "Expenses",
