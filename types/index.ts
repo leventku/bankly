@@ -20,3 +20,9 @@ export type Account = {
   account_id: string;
   balance: Balance;
 }
+
+export type LoadableState<T> =
+  | { type: 'not_asked' }
+  | { type: 'loading' }
+  | { type: 'loaded', data: T[] }
+  | { type: 'error', error: Error }

@@ -1,6 +1,9 @@
 import * as Tabs from "@radix-ui/react-tabs";
+import { useCallback, useEffect, useState } from "react";
 import { Transaction as TransactionType } from "../../../types";
-import { transactions } from "../../api/data/transactions";
+import { notReachable } from "../../common/notReachable";
+import { useLoadableData } from "../../common/useLoadableData";
+import { Loading } from "../loading";
 import "./index.css";
 import { Transaction } from "./item";
 
@@ -8,7 +11,7 @@ const isExpense = (transaction: TransactionType) =>
   transaction.amount.value < 0;
 const isIncome = (transaction: TransactionType) => transaction.amount.value > 0;
 
-const Expenses = () => {
+const Expenses = ({transactions}: {transactions: TransactionType[]}) => {
   return (
     <table aria-label="Expenses">
       <thead>
@@ -19,7 +22,7 @@ const Expenses = () => {
         </tr>
       </thead>
       <tbody>
-        {transactions.filter(isExpense).map((transaction) => (
+        {transactions.map((transaction) => (
           <Transaction transaction={transaction} key={transaction.id} />
         ))}
       </tbody>
@@ -27,7 +30,7 @@ const Expenses = () => {
   );
 };
 
-const Income = () => {
+const Income = ({transactions}: {transactions: TransactionType[]}) => {
   return (
     <table aria-label="Income">
       <thead>
@@ -38,7 +41,7 @@ const Income = () => {
         </tr>
       </thead>
       <tbody>
-        {transactions.filter(isIncome).map((transaction) => (
+        {transactions.map((transaction) => (
           <Transaction transaction={transaction} key={transaction.id} />
         ))}
       </tbody>
@@ -47,6 +50,9 @@ const Income = () => {
 };
 
 export const TransactionHistory = () => {
+  const [loadable] = useLoadableData<TransactionType>('api/transactions')
+
+  
   return (
     <>
       <h1 className="align-left">Transaction History</h1>
@@ -56,12 +62,43 @@ export const TransactionHistory = () => {
           <Tabs.Trigger value="income">Income</Tabs.Trigger>
         </Tabs.List>
 
-        <Tabs.Content className="TabsContent" value="expenses">
-          <Expenses />
-        </Tabs.Content>
-        <Tabs.Content className="TabsContent" value="income">
-          <Income />
-        </Tabs.Content>
+        {(() => {
+          switch (loadable.type) {
+            case 'loaded':
+              let incoming: TransactionType[] = []
+              const outgoing: TransactionType[] = []
+              loadable.data.forEach((item) => {
+                if (isIncome(item)) {
+                  incoming.push(item)
+                }
+                if (isExpense(item)) {
+                  outgoing.push(item)
+                }
+              })
+
+              return (
+                <>
+                  <Tabs.Content className="TabsContent" value="expenses">
+                    <Expenses transactions={outgoing} />
+                  </Tabs.Content>
+                  <Tabs.Content className="TabsContent" value="income">
+                    <Income transactions={incoming} />
+                  </Tabs.Content>
+                </>
+              );
+            case 'loading':
+              return <Loading />
+            case 'not_asked':
+              return null
+            case 'error':
+              return <div>Error</div>
+          
+            default:
+              return notReachable(loadable)
+          }
+        })()}
+
+       
       </Tabs.Root>
     </>
   );

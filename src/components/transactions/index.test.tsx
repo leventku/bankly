@@ -2,7 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { TransactionHistory } from ".";
 
 describe("transaction history", () => {
-  test("the expenses tab should be shown by default", () => {
+  test("the expenses tab should be shown by default", async () => {
+    const mockFetch = jest.spyOn(window, 'fetch')
     render(<TransactionHistory />);
 
     expect(screen.getByText("Transaction History")).toBeInTheDocument();
@@ -13,9 +14,11 @@ describe("transaction history", () => {
 
     expect(expensesTabTrigger).toHaveAttribute("data-state", "active");
 
-    const expensesTable = screen.getByRole("table", {
+    const expensesTable = await screen.findByRole("table", {
       name: "Expenses",
     });
+
+    expect(mockFetch).toHaveBeenCalledWith("api/transactions")
 
     expect(expensesTable).toBeInTheDocument();
     expect(screen.getByText("-20.25")).toBeInTheDocument();
