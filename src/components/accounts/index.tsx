@@ -4,9 +4,10 @@ import { useLoadableData } from "../../common/useLoadableData";
 import { Account } from "../../../types";
 import { notReachable } from "../../common/notReachable";
 import { Loading } from "../loading";
+import { Error } from "../error";
 
 export const Accounts = () => {
-  const [loadable] = useLoadableData<Account>('api/accounts')
+  const [loadable, setLoadable] = useLoadableData<Account>('api/accounts')
 
   switch (loadable.type) {
     case 'loaded':
@@ -26,7 +27,7 @@ export const Accounts = () => {
       case 'not_asked':
         return null
       case 'error':
-        return <div>Error</div>
+        return <Error onRetry={() => setLoadable({type: 'loading'})} />
   
     default:
       return notReachable(loadable)

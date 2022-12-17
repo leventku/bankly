@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Transaction as TransactionType } from "../../../types";
 import { notReachable } from "../../common/notReachable";
 import { useLoadableData } from "../../common/useLoadableData";
+import { Error } from "../error";
 import { Loading } from "../loading";
 import "./index.css";
 import { Transaction } from "./item";
@@ -50,7 +51,7 @@ const Income = ({transactions}: {transactions: TransactionType[]}) => {
 };
 
 export const TransactionHistory = () => {
-  const [loadable] = useLoadableData<TransactionType>('api/transactions')
+  const [loadable, setLoadable] = useLoadableData<TransactionType>('api/transactions')
 
   
   return (
@@ -91,7 +92,7 @@ export const TransactionHistory = () => {
             case 'not_asked':
               return null
             case 'error':
-              return <div>Error</div>
+              return <Error onRetry={() => setLoadable({type: 'loading'})} />
           
             default:
               return notReachable(loadable)
