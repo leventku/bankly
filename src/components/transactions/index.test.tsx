@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen, act, waitFor, waitForElementToBeRemoved } from "@testing-library/react";
+import user from '@testing-library/user-event'
 import { rest } from "msw";
 import { TransactionHistory } from ".";
 import { server } from "../../../jest.setup";
@@ -50,27 +51,29 @@ describe("transaction history", () => {
     );
 
     const mockFetch = jest.spyOn(window, 'fetch')
+
     render(<TransactionHistory />);
 
     expect(await screen.findByText(/Someting went wrong./)).toBeInTheDocument();
     expect(mockFetch).toHaveBeenNthCalledWith(1, "api/transactions")
-    
+
     expect(screen.queryByRole("table", {
       name: "Expenses",
     })).not.toBeInTheDocument()
 
     server.resetHandlers()
-    fireEvent.click(screen.getByText('Retry'))
-    
-    const expensesTable = await screen.findByRole("table", {
+    await user.click(screen.getByText('Retry'))
+
+    expect(mockFetch).toHaveBeenNthCalledWith(2, "api/transactions")
+    expect(await screen.findByText("Loading...")).toBeInTheDocument();
+    await waitForElementToBeRemoved(() => screen.getByText('Loading...'))
+    await screen.findByRole("table", {
       name: "Expenses",
     });
-    expect(mockFetch).toHaveBeenNthCalledWith(2, "api/transactions")
-    expect(expensesTable).toBeInTheDocument();
-    expect(screen.getByText("-€20.25")).toBeInTheDocument();
+    expect(await screen.findByText("-€20.25")).toBeInTheDocument()
   })
 
-  test.skip("changing between the expenses and income tabs should show different transactions", () => {
+  test("changing between the expenses and income tabs should show different transactions", async () => {
     render(<TransactionHistory />);
 
     const expensesTabTrigger = screen.getByRole("tab", {
@@ -79,22 +82,27 @@ describe("transaction history", () => {
     const incomeTabTrigger = screen.getByRole("tab", {
       name: "Income",
     });
-    const expensesTable = screen.getByRole("table", {
+    const expensesTable = await screen.findByRole("table", {
       name: "Expenses",
     });
-    const incomeTable = screen.queryByRole("table", {
+    let incomeTable = screen.queryByRole("table", {
       name: "Income",
     });
 
     expect(expensesTable).toBeInTheDocument();
     expect(incomeTable).not.toBeInTheDocument();
 
-    expect(screen.getByText("-20.25")).toBeInTheDocument();
+    expect(screen.getByText("-€20.25")).toBeInTheDocument();
 
-    incomeTabTrigger.click();
+    user.click(incomeTabTrigger);
+
+    incomeTable = await screen.findByRole("table", {
+      name: "Income",
+    });
+    expect(incomeTable).toBeInTheDocument();
 
     expect(incomeTabTrigger).toHaveAttribute("data-state", "active");
     expect(expensesTabTrigger).toHaveAttribute("data-state", "inactive");
-    expect(screen.queryByText("-20.25")).not.toBeInTheDocument();
+    expect(screen.queryByText("-€20.25")).not.toBeInTheDocument();
   });
 });

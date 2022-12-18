@@ -24,5 +24,5 @@ export type Account = {
 export type LoadableState<T> =
   | { type: 'not_asked' }
   | { type: 'loading' }
-  | { type: 'loaded', data: T[] }
+  | { type: 'loaded', data: T }
   | { type: 'error', error: Error }

@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitForElementToBeRemoved } from "@testing-library/react";
+import user from '@testing-library/user-event'
 import { rest } from "msw";
 import { Accounts } from ".";
 import { server } from "../../../jest.setup";
@@ -43,25 +44,28 @@ describe("Your accounts", () => {
 
     test('Error state and retry fetch', async () => {
         server.use(
-          rest.get("/api/accounts", (req, res, ctx) =>
-            res(ctx.status(400))
-          )
+            rest.get("/api/accounts", (req, res, ctx) =>
+                res(ctx.status(400))
+            )
         );
-    
+
         const mockFetch = jest.spyOn(window, 'fetch')
         render(<Accounts />);
-    
+
         expect(await screen.findByText(/Someting went wrong./)).toBeInTheDocument();
         expect(mockFetch).toHaveBeenNthCalledWith(1, "api/accounts")
-        
+
         expect(screen.queryByText("Total GBP")).not.toBeInTheDocument();
-    
+
         server.resetHandlers()
-        fireEvent.click(screen.getByText('Retry'))
-        
+        await user.click(screen.getByText('Retry'))
+        expect(mockFetch).toHaveBeenNthCalledWith(2, "api/accounts")
+        expect(await screen.findByText("Loading...")).toBeInTheDocument();
+        await waitForElementToBeRemoved(() => screen.getByText('Loading...'))
+
         expect(await screen.findByText("Total GBP")).toBeInTheDocument();
         expect(mockFetch).toHaveBeenNthCalledWith(2, "api/accounts")
         expect(screen.getByText("Total EUR")).toBeInTheDocument();
         expect(screen.getByText("Total USD")).toBeInTheDocument();
-      })
+    })
 })

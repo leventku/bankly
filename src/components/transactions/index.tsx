@@ -1,6 +1,5 @@
 import * as Tabs from "@radix-ui/react-tabs";
-import { useCallback, useEffect, useState } from "react";
-import { Transaction as TransactionType } from "../../../types";
+import { LoadableState, Transaction as TransactionType } from "../../../types";
 import { notReachable } from "../../common/notReachable";
 import { useLoadableData } from "../../common/useLoadableData";
 import { Error } from "../error";
@@ -12,7 +11,7 @@ const isExpense = (transaction: TransactionType) =>
   transaction.amount.value < 0;
 const isIncome = (transaction: TransactionType) => transaction.amount.value > 0;
 
-const Expenses = ({transactions}: {transactions: TransactionType[]}) => {
+const Expenses = ({ transactions }: { transactions: TransactionType[] }) => {
   return (
     <table aria-label="Expenses">
       <thead>
@@ -31,7 +30,7 @@ const Expenses = ({transactions}: {transactions: TransactionType[]}) => {
   );
 };
 
-const Income = ({transactions}: {transactions: TransactionType[]}) => {
+const Income = ({ transactions }: { transactions: TransactionType[] }) => {
   return (
     <table aria-label="Income">
       <thead>
@@ -51,9 +50,8 @@ const Income = ({transactions}: {transactions: TransactionType[]}) => {
 };
 
 export const TransactionHistory = () => {
-  const [loadable, setLoadable] = useLoadableData<TransactionType>('api/transactions')
+  const [loadable, setLoadable] = useLoadableData<TransactionType[]>('api/transactions')
 
-  
   return (
     <>
       <h1 className="align-left">Transaction History</h1>
@@ -63,44 +61,51 @@ export const TransactionHistory = () => {
           <Tabs.Trigger value="income">Income</Tabs.Trigger>
         </Tabs.List>
 
-        {(() => {
-          switch (loadable.type) {
-            case 'loaded':
-              let incoming: TransactionType[] = []
-              const outgoing: TransactionType[] = []
-              loadable.data.forEach((item) => {
-                if (isIncome(item)) {
-                  incoming.push(item)
-                }
-                if (isExpense(item)) {
-                  outgoing.push(item)
-                }
-              })
+        <Loader loadable={loadable} onRetry={() => setLoadable({ type: 'loading' })} />
 
-              return (
-                <>
-                  <Tabs.Content className="TabsContent" value="expenses">
-                    <Expenses transactions={outgoing} />
-                  </Tabs.Content>
-                  <Tabs.Content className="TabsContent" value="income">
-                    <Income transactions={incoming} />
-                  </Tabs.Content>
-                </>
-              );
-            case 'loading':
-              return <Loading />
-            case 'not_asked':
-              return null
-            case 'error':
-              return <Error onRetry={() => setLoadable({type: 'loading'})} />
-          
-            default:
-              return notReachable(loadable)
-          }
-        })()}
-
-       
       </Tabs.Root>
     </>
   );
 };
+
+type LoaderProps = {
+  loadable: LoadableState<TransactionType[]>;
+  onRetry: () => void
+};
+
+const Loader = ({ loadable, onRetry }: LoaderProps) => {
+  switch (loadable.type) {
+    case 'loaded': {
+      let incoming: TransactionType[] = []
+      const outgoing: TransactionType[] = []
+      loadable.data.forEach((item) => {
+        if (isIncome(item)) {
+          incoming.push(item)
+        }
+        if (isExpense(item)) {
+          outgoing.push(item)
+        }
+      })
+
+      return (
+        <>
+          <Tabs.Content className="TabsContent" value="expenses">
+            <Expenses transactions={outgoing} />
+          </Tabs.Content>
+          <Tabs.Content className="TabsContent" value="income">
+            <Income transactions={incoming} />
+          </Tabs.Content>
+        </>
+      );
+    }
+    case 'loading':
+      return <Loading />
+    case 'not_asked':
+      return null
+    case 'error':
+      return <Error onRetry={onRetry} />
+
+    default:
+      return notReachable(loadable)
+  }
+}

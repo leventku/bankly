@@ -12,11 +12,11 @@ export const useLoadableData = <T extends unknown> (url: string, state: Loadable
           .then((response) => {
             return response.json()
           })
-          .then((json) => {
-            setLoadable({type: 'loaded', data: json})
+          .then((data) => {
+            setLoadable({ type: 'loaded', data })
           })
-          .catch((ex) => {
-            setLoadable({type: 'error', error: ex})
+          .catch((error) => {
+            setLoadable({ type: 'error', error })
           })
         break;
       case 'loaded':
@@ -28,7 +28,7 @@ export const useLoadableData = <T extends unknown> (url: string, state: Loadable
         notReachable(loadable)
     }
 
-  }, [url, loadable.type])
+  }, [url, loadable.type, setLoadable, notReachable])
 
   return [loadable, setLoadable]
 

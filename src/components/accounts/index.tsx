@@ -7,7 +7,7 @@ import { Loading } from "../loading";
 import { Error } from "../error";
 
 export const Accounts = () => {
-  const [loadable, setLoadable] = useLoadableData<Account>('api/accounts')
+  const [loadable, setLoadable] = useLoadableData<Account[]>('api/accounts')
 
   switch (loadable.type) {
     case 'loaded':
