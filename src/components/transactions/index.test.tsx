@@ -9,7 +9,7 @@ describe("transaction history", () => {
     const mockFetch = jest.spyOn(window, 'fetch')
     render(<TransactionHistory />);
 
-    expect(screen.getByText("Transaction History")).toBeInTheDocument();
+    expect(screen.getByText("Transaction history")).toBeInTheDocument();
 
     const expensesTabTrigger = screen.getByRole("tab", {
       name: "Expenses",

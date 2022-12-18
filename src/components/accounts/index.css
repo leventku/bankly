@@ -5,11 +5,22 @@
 }
 
 .account {
-  background: var(--background-800);
+  background: var(--background-850);
   padding: var(--spacer-large);
   text-align: left;
+  border-radius: 4px;
 }
 
-.total {
+.account .total {
   color: var(--primary-300);
+  font-size: var(--font-medium);
+  line-height: 22px;
+}
+
+.account .amount {
+  color: var(--primary-900);
+  font-size: var(--font-large);
+  line-height: 28px;
+  font-weight: 700;
+  margin-top: var(--spacer-small);
 }

@@ -21,11 +21,11 @@ describe("Your accounts", () => {
         render(<Accounts />);
 
         expect(await screen.findByText("Total GBP")).toBeInTheDocument();
-        expect(screen.getByText("300")).toBeInTheDocument();
+        expect(screen.getByText("£300.00")).toBeInTheDocument();
         expect(screen.getByText("Total EUR")).toBeInTheDocument();
-        expect(screen.getByText("400")).toBeInTheDocument();
+        expect(screen.getByText("€400.00")).toBeInTheDocument();
         expect(screen.getByText("Total USD")).toBeInTheDocument();
-        expect(screen.getByText("500")).toBeInTheDocument();
+        expect(screen.getByText("$500.00")).toBeInTheDocument();
 
         expect(mockFetch).toHaveBeenCalledWith("api/accounts")
     })
